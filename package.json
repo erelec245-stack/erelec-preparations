@@ -1,6 +1,6 @@
 {
   "name": "erelec-preparations-netlify",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -13,7 +13,7 @@
     "@netlify/database": "latest",
     "bcryptjs": "^2.4.3",
     "express": "^4.21.2",
-    "serverless-http": "^3.2.0"
+    "@netlify/functions": "latest"
   },
   "devDependencies": {
     "netlify-cli": "latest"
