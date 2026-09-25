@@ -131,6 +131,12 @@ export default async function handler(req) {
     }
 
     if (method === "GET" && path === "/orders") {
+      // Les utilisateurs standards ne reçoivent que leurs propres préparations.
+      if (user.role !== "admin") {
+        const rows = await db.sql`SELECT o.*,u.name AS user_name FROM orders o LEFT JOIN users u ON u.id=o.user_id WHERE o.user_id=${user.id} ORDER BY o.id DESC`;
+        for (const o of rows) o.items = await db.sql`SELECT oi.qty,p.ref,p.name,p.unit FROM order_items oi JOIN products p ON p.id=oi.product_id WHERE oi.order_id=${o.id}`;
+        return json(rows);
+      }
       const rows = await db.sql`SELECT o.*,u.name AS user_name
         FROM orders o LEFT JOIN users u ON u.id=o.user_id ORDER BY o.id DESC`;
       for (const o of rows)
@@ -142,11 +148,36 @@ export default async function handler(req) {
 
     const statusMatch = path.match(/^\/orders\/(\d+)\/status$/);
     if (method === "PATCH" && statusMatch) {
+      if (user.role !== "admin") return json({error:"Administrateur requis"},403);
       const body = await req.json();
       const allowed = ["A_PREPARER","EN_PREPARATION","PRETE","ANNULEE"];
       if (!allowed.includes(body.status)) return json({error:"Statut invalide"},400);
       await db.sql`UPDATE orders SET status=${body.status} WHERE id=${Number(statusMatch[1])}`;
       return json({ok:true});
+    }
+
+    if (method === "GET" && path === "/users") {
+      if (user.role !== "admin") return json({error:"Administrateur requis"},403);
+      const rows = await db.sql`SELECT id,name,username,role FROM users ORDER BY name`;
+      return json(rows);
+    }
+
+    if (method === "POST" && path === "/users") {
+      if (user.role !== "admin") return json({error:"Administrateur requis"},403);
+      try {
+        const body = await req.json();
+        const name = String(body.name || "").trim();
+        const username = String(body.username || "").trim();
+        const password = String(body.password || "");
+        if (!name || !username || !password) return json({error:"Nom, identifiant et mot de passe sont obligatoires"},400);
+        if (password.length < 6) return json({error:"Le mot de passe doit contenir au moins 6 caractères"},400);
+        const hash = bcrypt.hashSync(password, 10);
+        const r = await db.sql`INSERT INTO users(name,username,password,role)
+          VALUES (${name},${username},${hash},${"user"}) RETURNING id`;
+        return json({id:r[0].id});
+      } catch {
+        return json({error:"Identifiant déjà utilisé ou données invalides"},400);
+      }
     }
 
     if (method === "POST" && path === "/products") {

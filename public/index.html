@@ -1,13 +1,67 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ERELEC — Préparations</title><style>body{font-family:Arial;margin:0;background:#f3f5f7;color:#172b3a}.wrap{max-width:900px;margin:auto;padding:18px}.top{background:#17324d;color:#fff;padding:18px;border-radius:0 0 14px 14px}.grid{display:grid;gap:12px}.card{background:white;border:1px solid #dde4ea;border-radius:12px;padding:14px}.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.primary{background:#1769aa;color:white}.secondary{background:#e8edf2}.input{width:100%;padding:11px;border:1px solid #ccd5dd;border-radius:9px;margin:6px 0 12px;box-sizing:border-box}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}.hidden{display:none}.qty button{width:30px;height:30px;border:0;border-radius:8px}.item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}.badge{padding:5px 8px;border-radius:15px;background:#fff0d5;font-size:12px}.muted{color:#6c7a86;font-size:13px}</style></head><body><div class="top"><div class="wrap"><b>ERELEC</b><div>Préparation de matériel</div></div></div><main class="wrap"><div id="login" class="card"><h2>Connexion</h2><input class="input" id="user" placeholder="Identifiant"><input class="input" id="pass" type="password" placeholder="Mot de passe"><button class="btn primary" onclick="login()">Se connecter</button><p class="muted">Compte initial : admin / ChangeMoi123! — à modifier sur le serveur.</p></div><div id="app" class="hidden"><div class="row"><h2>Tableau de bord</h2><button class="btn secondary" onclick="logout()">Déconnexion</button></div><div class="tabs"><button class="btn primary" onclick="view('new')">Nouvelle préparation</button><button class="btn secondary" onclick="view('orders')">Mes préparations</button><button class="btn secondary" onclick="view('depot')">Dépôt</button></div><section id="new" class="grid"><div class="card"><h3>Chantier</h3><input class="input" id="site" placeholder="Titre du chantier au choix"><input class="input" id="comment" placeholder="Commentaire (facultatif)"></div><div class="card"><h3>Catalogue</h3><input class="input" id="q" oninput="products()" placeholder="Rechercher une référence ou désignation"><div id="products"></div></div><div class="card"><h3>Récapitulatif</h3><div id="cart"></div><button class="btn primary" onclick="submitOrder()">✓ VALIDER ET ENVOYER AU DÉPÔT</button></div></section><section id="orders" class="hidden"><h3>Préparations</h3><div id="ordersList" class="grid"></div></section><section id="depot" class="hidden"><h3>Dépôt</h3><div id="depotList" class="grid"></div></section></div></main><script>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ERELEC — Préparations</title><style>body{font-family:Arial;margin:0;background:#f3f5f7;color:#172b3a}.wrap{max-width:900px;margin:auto;padding:18px}.top{background:#17324d;color:#fff;padding:18px;border-radius:0 0 14px 14px}.grid{display:grid;gap:12px}.card{background:white;border:1px solid #dde4ea;border-radius:12px;padding:14px}.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.primary{background:#1769aa;color:white}.secondary{background:#e8edf2}.input{width:100%;padding:11px;border:1px solid #ccd5dd;border-radius:9px;margin:6px 0 12px;box-sizing:border-box}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}.tab.active{background:#1769aa;color:white}.hidden{display:none}.qty button{width:30px;height:30px;border:0;border-radius:8px}.item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}.badge{padding:5px 8px;border-radius:15px;background:#fff0d5;font-size:12px}.muted{color:#6c7a86;font-size:13px}.adminbox{margin-top:12px;padding:12px;background:#f6f8fa;border:1px solid #dde4ea;border-radius:10px}.adminbox h4{margin:0 0 8px}.small{font-size:12px}.admin-only.hidden{display:none}</style></head><body><div class="top"><div class="wrap"><b>ERELEC</b><div>Préparation de matériel</div></div></div><main class="wrap"><div id="login" class="card"><h2>Connexion</h2><input class="input" id="user" placeholder="Identifiant"><input class="input" id="pass" type="password" placeholder="Mot de passe"><button class="btn primary" onclick="login()">Se connecter</button><p class="muted">Compte initial : admin / ChangeMoi123! — à modifier sur le serveur.</p></div><div id="app" class="hidden"><div class="row"><h2>Tableau de bord</h2><button class="btn secondary" onclick="logout()">Déconnexion</button></div><div class="tabs"><button id="tabNew" class="btn primary tab active" onclick="view('new')">Nouvelle préparation</button><button id="tabOrders" class="btn secondary tab" onclick="view('orders')">Mes préparations</button><button id="tabDepot" class="btn secondary tab admin-only" onclick="view('depot')">Dépôt</button><button id="tabUsers" class="btn secondary tab admin-only" onclick="view('users')">Utilisateurs</button></div><section id="new" class="grid"><div class="card"><h3>Chantier</h3><input class="input" id="site" placeholder="Titre du chantier au choix"><input class="input" id="comment" placeholder="Commentaire (facultatif)"></div><div class="card"><div class="row"><h3>Catalogue</h3><button id="addProductBtn" class="btn secondary" onclick="toggleAddProduct()">＋ Ajouter un produit</button></div><input class="input" id="q" oninput="products()" placeholder="Rechercher une référence ou désignation"><div id="products"></div><div id="addProductBox" class="adminbox hidden"><h4>Ajouter un produit au catalogue</h4><input class="input" id="newRef" placeholder="Référence *"><input class="input" id="newName" placeholder="Désignation *"><input class="input" id="newUnit" value="pièce" placeholder="Unité"><button class="btn primary" onclick="addProduct()">Enregistrer le produit</button> <button class="btn secondary" onclick="toggleAddProduct()">Annuler</button><div class="muted small">Réservé à l'administrateur.</div></div></div><div class="card"><h3>Récapitulatif</h3><div id="cart"></div><button class="btn primary" onclick="submitOrder()">✓ VALIDER ET ENVOYER AU DÉPÔT</button></div></section><section id="orders" class="hidden"><h3>Préparations</h3><div id="ordersList" class="grid"></div></section><section id="users" class="hidden"><h3>Utilisateurs</h3>
+<div class="card"><h3>Créer un utilisateur</h3>
+<input class="input" id="newUserName" placeholder="Nom de l'utilisateur *">
+<input class="input" id="newUsername" placeholder="Identifiant *">
+<input class="input" id="newUserPassword" type="password" placeholder="Mot de passe *">
+<button class="btn primary" onclick="createUser()">Créer l'utilisateur</button>
+</div>
+<div class="card"><h3>Utilisateurs existants</h3><div id="usersList"></div></div>
+</section>
+<section id="depot" class="hidden"><h3>Dépôt</h3><div id="depotList" class="grid"></div></section></div></main><script>
 let cart={};let current=null;async function api(u,o){let r=await fetch(u,{headers:{'Content-Type':'application/json'},...o});let j=await r.json();if(!r.ok)throw Error(j.error||'Erreur');return j}
-async function login(){try{current=await api('/api/login',{method:'POST',body:JSON.stringify({username:user.value,password:pass.value})});loginBox(false);products();orders()}catch(e){alert(e.message)}}function loginBox(on){document.getElementById('login').classList.toggle('hidden',!on);document.getElementById('app').classList.toggle('hidden',on)}async function logout(){await api('/api/logout',{method:'POST'});location.reload()}
-function view(v){['new','orders','depot'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==v));if(v==='orders')orders();if(v==='depot')depot();if(v==='new')products()}
+async function login(){try{current=await api('/api/login',{method:'POST',body:JSON.stringify({username:user.value,password:pass.value})});loginBox(false);setupAdminUI();products();orders()}catch(e){alert(e.message)}}function loginBox(on){document.getElementById('login').classList.toggle('hidden',!on);document.getElementById('app').classList.toggle('hidden',on)}async function logout(){await api('/api/logout',{method:'POST'});location.reload()}
+function view(v){
+ ['new','orders','depot','users'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==v));
+ ['new','orders','depot','users'].forEach(x=>document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1)).classList.remove('active'));
+ document.getElementById('tab'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('active');
+ if(v==='orders')orders();if(v==='depot')depot();if(v==='users')users();if(v==='new')products()
+}
+function setupAdminUI(){
+ document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',current?.role!=='admin'));
+}
 async function products(){let ps=await api('/api/products?q='+encodeURIComponent(document.getElementById('q')?.value||''));document.getElementById('products').innerHTML=ps.map(p=>`<div class="item"><div><b>${p.ref}</b><div class="muted">${p.name} · ${p.unit}</div></div><div class="qty"><button onclick="add(${p.id},-1)">−</button><b>${cart[p.id]||0}</b><button onclick="add(${p.id},1)">+</button></div></div>`).join('');renderCart()}
 function add(id,n){cart[id]=Math.max(0,(cart[id]||0)+n);if(!cart[id])delete cart[id];products()}function renderCart(){document.getElementById('cart').innerHTML=Object.entries(cart).length?Object.entries(cart).map(([id,q])=>`<div class="item"><span>Réf. ${id}</span><b>${q}</b></div>`).join(''):'<div class="muted">Aucun article sélectionné.</div>'}
+function toggleAddProduct(){document.getElementById('addProductBox').classList.toggle('hidden')}
+async function addProduct(){
+ if(current?.role!=='admin') return alert('Administrateur requis.');
+ const ref=document.getElementById('newRef').value.trim(), name=document.getElementById('newName').value.trim();
+ const unit=document.getElementById('newUnit').value.trim()||'pièce';
+ if(!ref||!name) return alert('La référence et la désignation sont obligatoires.');
+ try{
+  await api('/api/products',{method:'POST',body:JSON.stringify({ref,name,unit})});
+  alert('Produit ajouté au catalogue.');
+  document.getElementById('newRef').value=''; document.getElementById('newName').value='';
+  document.getElementById('newUnit').value='pièce';
+  document.getElementById('addProductBox').classList.add('hidden');
+  document.getElementById('q').value=ref; products();
+ }catch(e){alert(e.message)}
+}
+async function users(){
+ if(current?.role!=='admin') return;
+ try{
+  const us=await api('/api/users');
+  document.getElementById('usersList').innerHTML=us.map(u=>`<div class="item"><span><b>${u.name}</b><div class="muted">${u.username}</div></span><span class="badge">${u.role==='admin'?'Administrateur':'Utilisateur'}</span></div>`).join('')||'<div class="muted">Aucun utilisateur.</div>';
+ }catch(e){alert(e.message)}
+}
+async function createUser(){
+ if(current?.role!=='admin') return alert('Administrateur requis.');
+ const name=document.getElementById('newUserName').value.trim();
+ const username=document.getElementById('newUsername').value.trim();
+ const password=document.getElementById('newUserPassword').value;
+ if(!name||!username||!password) return alert('Nom, identifiant et mot de passe sont obligatoires.');
+ try{
+  await api('/api/users',{method:'POST',body:JSON.stringify({name,username,password})});
+  alert('Utilisateur créé.');
+  document.getElementById('newUserName').value='';
+  document.getElementById('newUsername').value='';
+  document.getElementById('newUserPassword').value='';
+  users();
+ }catch(e){alert(e.message)}
+}
 async function submitOrder(){if(!site.value.trim())return alert('Saisissez un titre de chantier.');let items=Object.entries(cart).map(([product_id,qty])=>({product_id:Number(product_id),qty}));if(!items.length)return alert('Ajoutez au moins un article.');await api('/api/orders',{method:'POST',body:JSON.stringify({site:site.value,comment:comment.value,items})});alert('Préparation validée et envoyée au dépôt.');cart={};site.value='';comment.value='';view('orders')}
 function status(s){return {A_PREPARER:'À préparer',EN_PREPARATION:'En préparation',PRETE:'Prête',ANNULEE:'Annulée'}[s]||s}
 async function orders(){let os=await api('/api/orders');ordersList.innerHTML=os.filter(o=>o.user_id===current.id||current.role==='admin').map(o=>`<div class="card"><div class="row"><b>#ERE-${String(o.id).padStart(4,'0')}</b><span class="badge">${status(o.status)}</span></div><p><b>${o.site}</b></p><div>${o.items.map(i=>`${i.ref} — ${i.qty} ${i.unit}`).join('<br>')}</div></div>`).join('')||'<div class="muted">Aucune préparation.</div>'}
 async function depot(){let os=await api('/api/orders');depotList.innerHTML=os.map(o=>`<div class="card"><div class="row"><b>#ERE-${String(o.id).padStart(4,'0')} · ${o.site}</b><span class="badge">${status(o.status)}</span></div><p class="muted">${o.user_name||''}</p>${o.items.map(i=>`<div>☐ ${i.ref} — ${i.qty} ${i.unit}</div>`).join('')}<br><button class="btn secondary" onclick="setStatus(${o.id},'EN_PREPARATION')">En préparation</button> <button class="btn primary" onclick="setStatus(${o.id},'PRETE')">Préparation prête</button></div>`).join('')}
 async function setStatus(id,status){await api('/api/orders/'+id+'/status',{method:'PATCH',body:JSON.stringify({status})});depot()}
-(async()=>{let m=await api('/api/me');if(m){current=m;loginBox(false);products()}})();
+(async()=>{let m=await api('/api/me');if(m){current=m;loginBox(false);setupAdminUI();products()}})();
 </script></body></html>
