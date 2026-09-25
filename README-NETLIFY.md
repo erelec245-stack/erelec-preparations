@@ -1,26 +1,23 @@
-# ERELEC — déploiement Netlify
+# ERELEC — version Netlify V3
 
-Cette version transforme le serveur Express + SQLite d'origine en Netlify Functions + Netlify Database (Postgres).
+Cette version utilise Netlify Database (PostgreSQL) et Netlify Functions.
+
+## Variables d'environnement
+- `SESSION_SECRET` : clé secrète longue et aléatoire
+- `ADMIN_PASSWORD` : mot de passe du compte `admin`
+
+La Function utilise `getConnectionString()` de `@netlify/database`, puis passe explicitement la connexion à `getDatabase()`. Cette configuration est nécessaire lorsque la Function est exécutée en mode Lambda compatibility.
 
 ## Déploiement
-1. Créer un dépôt GitHub et y mettre le contenu de ce dossier.
-2. Dans Netlify : Add new project > Import an existing project > GitHub.
-3. Laisser `public` comme Publish directory. Le fichier `netlify.toml` configure les Functions.
-4. Dans Netlify, créer la base via Data & Storage > Database, ou avec `netlify database init`.
-5. Ajouter les variables d'environnement :
-   - `SESSION_SECRET` : une longue valeur aléatoire
-   - `ADMIN_PASSWORD` : mot de passe admin initial
-6. Déployer.
+1. Remplacer les fichiers du dépôt GitHub par cette version.
+2. Vérifier que la base existe dans Netlify : Data & Storage > Database.
+3. Vérifier `SESSION_SECRET` et `ADMIN_PASSWORD` dans les variables d'environnement.
+4. Déclencher un nouveau déploiement.
 
-## Important
-La version d'origine utilise SQLite dans un volume Docker. Ce stockage local n'est pas adapté aux Functions Netlify. Cette version utilise donc Postgres via Netlify Database.
+La migration `netlify/database/migrations/0001_create_erelec_tables.sql` crée les tables `users`, `products`, `orders` et `order_items`.
 
+Compte initial :
+- identifiant : `admin`
+- mot de passe : valeur de `ADMIN_PASSWORD`
 
-## Base de données Netlify
-
-Le projet utilise Netlify Database (PostgreSQL) avec une migration dans `netlify/database/migrations/0001_create_erelec_tables.sql`.
-Lors du déploiement, Netlify applique automatiquement cette migration.
-
-Variables d’environnement recommandées :
-- `SESSION_SECRET` : longue clé secrète aléatoire
-- `ADMIN_PASSWORD` : mot de passe initial du compte `admin`
+Si `ADMIN_PASSWORD` n'est pas défini, la valeur de test par défaut est `ChangeMoi123!`. Pour la production, définir impérativement `ADMIN_PASSWORD`.
