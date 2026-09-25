@@ -48,36 +48,6 @@ function admin(req, res, next) {
 let initialized = false;
 async function initDb() {
   if (initialized) return;
-  await db.sql`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'user'
-    );
-    CREATE TABLE IF NOT EXISTS products (
-      id SERIAL PRIMARY KEY,
-      ref TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      category TEXT,
-      unit TEXT DEFAULT 'pièce'
-    );
-    CREATE TABLE IF NOT EXISTS orders (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER,
-      site TEXT NOT NULL,
-      comment TEXT,
-      status TEXT NOT NULL DEFAULT 'A_PREPARER',
-      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS order_items (
-      id SERIAL PRIMARY KEY,
-      order_id INTEGER,
-      product_id INTEGER,
-      qty DOUBLE PRECISION NOT NULL
-    );
-  `;
   const users = await db.sql`SELECT id FROM users LIMIT 1`;
   if (!users.rows.length) {
     const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'ChangeMoi123!', 10);

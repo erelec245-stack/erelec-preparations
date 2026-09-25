@@ -14,3 +14,13 @@ Cette version transforme le serveur Express + SQLite d'origine en Netlify Functi
 
 ## Important
 La version d'origine utilise SQLite dans un volume Docker. Ce stockage local n'est pas adapté aux Functions Netlify. Cette version utilise donc Postgres via Netlify Database.
+
+
+## Base de données Netlify
+
+Le projet utilise Netlify Database (PostgreSQL) avec une migration dans `netlify/database/migrations/0001_create_erelec_tables.sql`.
+Lors du déploiement, Netlify applique automatiquement cette migration.
+
+Variables d’environnement recommandées :
+- `SESSION_SECRET` : longue clé secrète aléatoire
+- `ADMIN_PASSWORD` : mot de passe initial du compte `admin`
